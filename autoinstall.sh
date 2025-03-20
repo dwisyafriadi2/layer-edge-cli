@@ -1,21 +1,21 @@
 #!/bin/bash
 
-# Color variables
 GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 REPO_URL="https://github.com/Layer-Edge/light-node.git"
 GRPC_URL="34.31.74.109:9090"
 CONTRACT_ADDR="cosmos1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqt56709"
 ZK_PROVER_URL="http://127.0.0.1:3001"
 POINTS_API="https://light-node.layeredge.io"
+SERVICE_NAME="layer-edge-light-node"
+LOG_FILE="/var/log/layer-edge-light-node.log"
 
 function install_dependencies() {
     echo -e "${GREEN}Installing Go, Rust, and Risc0 Toolchain...${NC}"
     cp ~/.bashrc ~/.bashrc.bak
     sudo apt update && sudo apt install -y curl build-essential git pkg-config libssl-dev
 
-    # Install Go
     if ! command -v go &> /dev/null; then
         wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
         sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
@@ -24,13 +24,11 @@ function install_dependencies() {
         rm go1.21.0.linux-amd64.tar.gz
     fi
 
-    # Install Rust
     if ! command -v cargo &> /dev/null; then
         curl https://sh.rustup.rs -sSf | sh -s -- -y
         source "$HOME/.cargo/env"
     fi
 
-    # Install Risc0 Toolchain
     curl -L https://risczero.com/install | bash
     export PATH="$HOME/.risc0/bin:$PATH"
     rzup install
@@ -74,19 +72,58 @@ function build_light_node() {
     echo -e "${GREEN}Build complete. Run './light-node' to start.${NC}"
 }
 
+function create_systemd_service() {
+    echo -e "${GREEN}Creating systemd service...${NC}"
+    sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null <<EOF
+[Unit]
+Description=LayerEdge Light Node
+After=network.target
+
+[Service]
+User=$USER
+WorkingDirectory=$HOME/light-node
+ExecStart=$HOME/light-node/light-node
+Restart=always
+StandardOutput=append:${LOG_FILE}
+StandardError=append:${LOG_FILE}
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable ${SERVICE_NAME}
+    sudo systemctl start ${SERVICE_NAME}
+    echo -e "${GREEN}Systemd service created and started.${NC}"
+}
+
 function run_light_node() {
-    echo -e "${GREEN}Running Light Node...${NC}"
-    cd ~/light-node || exit
-    ./light-node
+    build_light_node
+    create_systemd_service
+}
+
+function view_logs() {
+    echo -e "${GREEN}Showing logs (tail -f)...${NC}"
+    sudo tail -f ${LOG_FILE}
+}
+
+function check_status() {
+    echo -e "${GREEN}Checking Light Node status...${NC}"
+    sudo systemctl status ${SERVICE_NAME}
 }
 
 function uninstall() {
     echo -e "${GREEN}Uninstalling Light Node and cleaning up...${NC}"
-    rm -rf ~/light-node
-    rm -rf ~/.risc0
-    rm -rf ~/.cargo
+    sudo systemctl stop ${SERVICE_NAME}
+    sudo systemctl disable ${SERVICE_NAME}
+    sudo rm /etc/systemd/system/${SERVICE_NAME}.service
+    sudo rm -rf ~/light-node
+    sudo rm -rf ~/.risc0
+    sudo rm -rf ~/.cargo
+    sudo rm -f ${LOG_FILE}
     mv ~/.bashrc.bak ~/.bashrc
     source ~/.bashrc
+    sudo systemctl daemon-reload
     echo -e "${GREEN}Uninstallation complete.${NC}"
 }
 
@@ -98,21 +135,23 @@ function menu() {
         echo "2. Clone Repository"
         echo "3. Setup .env File"
         echo "4. Start Merkle Service"
-        echo "5. Build Light Node"
-        echo "6. Run Light Node"
-        echo "7. Uninstall"
-        echo "8. Exit"
-        read -rp "Choose an option [1-8]: " choice
+        echo "5. Build & Run Light Node (Systemd)"
+        echo "6. View Logs"
+        echo "7. Check Node Status"
+        echo "8. Uninstall"
+        echo "9. Exit"
+        read -rp "Choose an option [1-9]: " choice
 
         case $choice in
             1) install_dependencies ;;
             2) clone_repo ;;
             3) setup_env ;;
             4) start_merkle_service ;;
-            5) build_light_node ;;
-            6) run_light_node ;;
-            7) uninstall ;;
-            8) echo "Exiting..."; break ;;
+            5) run_light_node ;;
+            6) view_logs ;;
+            7) check_status ;;
+            8) uninstall ;;
+            9) echo "Exiting..."; break ;;
             *) echo "Invalid option. Please try again." ;;
         esac
     done
