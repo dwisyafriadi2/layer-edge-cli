@@ -35,6 +35,7 @@ function install_dependencies() {
 
 function clone_repo() {
     echo -e "${GREEN}Cloning Light Node repository...${NC}"
+    cd; rm -rf light-node
     git clone $REPO_URL
     cd light-node || exit
 }
