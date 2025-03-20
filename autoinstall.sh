@@ -12,6 +12,7 @@ POINTS_API="https://light-node.layeredge.io"
 
 function install_dependencies() {
     echo -e "${GREEN}Installing Go, Rust, and Risc0 Toolchain...${NC}"
+    cp ~/.bashrc ~/.bashrc.bak
     sudo apt update && sudo apt install -y curl build-essential git pkg-config libssl-dev
 
     # Install Go
@@ -84,6 +85,8 @@ function uninstall() {
     rm -rf ~/light-node
     rm -rf ~/.risc0
     rm -rf ~/.cargo
+    mv ~/.bashrc.bak ~/.bashrc
+    source ~/.bashrc
     echo -e "${GREEN}Uninstallation complete.${NC}"
 }
 
