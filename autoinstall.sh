@@ -12,7 +12,7 @@ POINTS_API="https://light-node.layeredge.io"
 
 function install_dependencies() {
     echo -e "${GREEN}Installing Go, Rust, and Risc0 Toolchain...${NC}"
-    sudo apt update && sudo apt install -y curl build-essential git
+    sudo apt update && sudo apt install -y curl build-essential git pkg-config libssl-dev
 
     # Install Go
     if ! command -v go &> /dev/null; then
@@ -26,50 +26,65 @@ function install_dependencies() {
     # Install Rust
     if ! command -v cargo &> /dev/null; then
         curl https://sh.rustup.rs -sSf | sh -s -- -y
-        source $HOME/.cargo/env
+        source "$HOME/.cargo/env"
     fi
 
-    # Install Risc0
-    curl -L https://risczero.com/install | bash && ~/.cargo/bin/rzup install
+    # Install Risc0 Toolchain
+    curl -L https://risczero.com/install | bash
+    export PATH="$HOME/.risc0/bin:$PATH"
+    rzup install
 }
 
 function clone_repo() {
     echo -e "${GREEN}Cloning Light Node repository...${NC}"
-    cd; rm -rf light-node
+    cd || exit
+    rm -rf light-node
     git clone $REPO_URL
     cd light-node || exit
 }
 
 function setup_env() {
     echo -e "${GREEN}Setting up .env file...${NC}"
+    read -rsp "Enter your PRIVATE_KEY: " PRIVATE_KEY_INPUT
+    echo ""
+
     cat <<EOF > .env
 GRPC_URL=$GRPC_URL
 CONTRACT_ADDR=$CONTRACT_ADDR
 ZK_PROVER_URL=$ZK_PROVER_URL
 API_REQUEST_TIMEOUT=100
 POINTS_API=$POINTS_API
-PRIVATE_KEY='your-private-key-here'
+PRIVATE_KEY='$PRIVATE_KEY_INPUT'
 EOF
-    echo -e "${GREEN}.env file created. Please edit PRIVATE_KEY in .env${NC}"
+
+    echo -e "${GREEN}.env file created successfully.${NC}"
 }
 
 function start_merkle_service() {
     echo -e "${GREEN}Starting Merkle Service...${NC}"
-    cd light-node/risc0-merkle-service || exit
+    cd ~/light-node/risc0-merkle-service || exit
     cargo build && cargo run
 }
 
 function build_light_node() {
     echo -e "${GREEN}Building Light Node...${NC}"
-    cd light-node || exit
+    cd ~/light-node || exit
     go build
     echo -e "${GREEN}Build complete. Run './light-node' to start.${NC}"
 }
 
 function run_light_node() {
     echo -e "${GREEN}Running Light Node...${NC}"
-    cd light-node || exit
+    cd ~/light-node || exit
     ./light-node
+}
+
+function uninstall() {
+    echo -e "${GREEN}Uninstalling Light Node and cleaning up...${NC}"
+    rm -rf ~/light-node
+    rm -rf ~/.risc0
+    rm -rf ~/.cargo
+    echo -e "${GREEN}Uninstallation complete.${NC}"
 }
 
 function menu() {
@@ -82,8 +97,9 @@ function menu() {
         echo "4. Start Merkle Service"
         echo "5. Build Light Node"
         echo "6. Run Light Node"
-        echo "7. Exit"
-        read -rp "Choose an option [1-7]: " choice
+        echo "7. Uninstall"
+        echo "8. Exit"
+        read -rp "Choose an option [1-8]: " choice
 
         case $choice in
             1) install_dependencies ;;
@@ -92,7 +108,8 @@ function menu() {
             4) start_merkle_service ;;
             5) build_light_node ;;
             6) run_light_node ;;
-            7) echo "Exiting..."; break ;;
+            7) uninstall ;;
+            8) echo "Exiting..."; break ;;
             *) echo "Invalid option. Please try again." ;;
         esac
     done
