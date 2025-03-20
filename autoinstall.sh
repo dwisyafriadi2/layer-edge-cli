@@ -62,7 +62,7 @@ EOF
 function start_merkle_service() {
     echo -e "${GREEN}Starting Merkle Service...${NC}"
     cd ~/light-node/risc0-merkle-service || exit
-    cargo build && cargo run
+    cargo build
 }
 
 function build_light_node() {
