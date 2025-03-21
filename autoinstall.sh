@@ -4,7 +4,7 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 REPO_URL="https://github.com/Layer-Edge/light-node.git"
-GRPC_URL="34.31.74.109:9090"
+GRPC_URL="rpc.testnet.layeredge.io:9090"
 CONTRACT_ADDR="cosmos1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqt56709"
 ZK_PROVER_URL="http://127.0.0.1:3001"
 POINTS_API="https://light-node.layeredge.io"
