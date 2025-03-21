@@ -113,6 +113,11 @@ function check_status() {
     sudo systemctl status ${SERVICE_NAME}
 }
 
+function stop_service() {
+    echo -e "${GREEN}Checking Light Node status...${NC}"
+    sudo systemctl stop ${SERVICE_NAME}
+}
+
 function uninstall() {
     echo -e "${GREEN}Uninstalling Light Node and cleaning up...${NC}"
     sudo systemctl stop ${SERVICE_NAME}
@@ -136,12 +141,13 @@ function menu() {
         echo "2. Clone Repository"
         echo "3. Setup .env File"
         echo "4. Start Merkle Service"
-        echo "5. Build & Run Light Node (Systemd)"
-        echo "6. View Logs"
-        echo "7. Check Node Status"
-        echo "8. Uninstall"
-        echo "9. Exit"
-        read -rp "Choose an option [1-9]: " choice
+        echo "5. Build & Start Light Node (Systemd)"
+        echo "6. Stop Service"
+        echo "7. View Logs"
+        echo "8. Check Node Status"
+        echo "9. Uninstall"
+        echo "10. Exit"
+        read -rp "Choose an option [1-10]: " choice
 
         case $choice in
             1) install_dependencies ;;
@@ -149,10 +155,11 @@ function menu() {
             3) setup_env ;;
             4) start_merkle_service ;;
             5) run_light_node ;;
-            6) view_logs ;;
-            7) check_status ;;
-            8) uninstall ;;
-            9) echo "Exiting..."; break ;;
+            6) stop_service ;;
+            7) view_logs ;;
+            8) check_status ;;
+            9) uninstall ;;
+            10) echo "Exiting..."; break ;;
             *) echo "Invalid option. Please try again." ;;
         esac
     done
