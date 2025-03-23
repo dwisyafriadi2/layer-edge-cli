@@ -10,7 +10,7 @@ ZK_PROVER_URL="https://layeredge.mintair.xyz/"
 API_REQUEST_TIMEOUT=100
 POINTS_API="https://light-node.layeredge.io"
 SERVICE_NAME="layeredge"
-LOG_FILE="~/light-node/light-node.log"
+LOG_FILE="$HOME/light-node/light-node.log"
 
 function install_dependencies() {
     echo -e "${GREEN}Installing Go, Rust, and Risc0 Toolchain...${NC}"
