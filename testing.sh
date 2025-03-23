@@ -48,7 +48,7 @@ function setup_env() {
     read -rsp "Enter your PRIVATE_KEY: " PRIVATE_KEY_INPUT
     echo ""
 
-    cat <<EOF > .env
+    cat <<EOF > ~/light-node/.env
 GRPC_URL=$GRPC_URL
 CONTRACT_ADDR=$CONTRACT_ADDR
 ZK_PROVER_URL=$ZK_PROVER_URL
