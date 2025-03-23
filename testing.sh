@@ -4,12 +4,12 @@ GREEN='\033[0;32m'
 NC='\033[0m'
 
 REPO_URL="https://github.com/Layer-Edge/light-node.git"
-GRPC_URL="https://grpc.testnet.layeredge.io:9090/"
+GRPC_URL="grpc.testnet.layeredge.io:9090"
 CONTRACT_ADDR="cosmos1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqqt56709"
 ZK_PROVER_URL="http://127.0.0.1:3001"
 POINTS_API="http://127.0.0.1:8080"
-SERVICE_NAME="layer-edge-light-node"
-LOG_FILE="/var/log/layer-edge-light-node.log"
+SERVICE_NAME="layeredge"
+LOG_FILE="~/light-node/light-node.log"
 
 function install_dependencies() {
     echo -e "${GREEN}Installing Go, Rust, and Risc0 Toolchain...${NC}"
@@ -113,6 +113,11 @@ function check_status() {
     sudo systemctl status ${SERVICE_NAME}
 }
 
+function start_service() {
+    echo -e "${GREEN}Checking Light Node status...${NC}"
+    sudo systemctl start ${SERVICE_NAME}
+}
+
 function stop_service() {
     echo -e "${GREEN}Checking Light Node status...${NC}"
     sudo systemctl stop ${SERVICE_NAME}
@@ -141,12 +146,13 @@ function menu() {
         echo "2. Clone Repository"
         echo "3. Setup .env File"
         echo "4. Start Merkle Service"
-        echo "5. Build & Start Light Node (Systemd)"
-        echo "6. Stop Service"
-        echo "7. View Logs"
-        echo "8. Check Node Status"
-        echo "9. Uninstall"
-        echo "10. Exit"
+        echo "5. Build Light Node"
+        echo "6. Start Service"
+        echo "7. Stop Service"
+        echo "8. View Logs"
+        echo "9. Check Node Status"
+        echo "10. Uninstall"
+        echo "11. Exit"
         read -rp "Choose an option [1-10]: " choice
 
         case $choice in
@@ -155,11 +161,12 @@ function menu() {
             3) setup_env ;;
             4) start_merkle_service ;;
             5) run_light_node ;;
-            6) stop_service ;;
-            7) view_logs ;;
-            8) check_status ;;
-            9) uninstall ;;
-            10) echo "Exiting..."; break ;;
+            6) start_service;;
+            7) stop_service ;;
+            8) view_logs ;;
+            9) check_status ;;
+            10) uninstall ;;
+            11) echo "Exiting..."; break ;;
             *) echo "Invalid option. Please try again." ;;
         esac
     done
